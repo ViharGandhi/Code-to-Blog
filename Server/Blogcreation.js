@@ -21,13 +21,19 @@ export default async function blogCreatinon(projectFiles) {
     Please generate a blog post that would be compelling for developers and technical readers.`
    
     const response = await anthropic.messages.create({
-      model: 'claude-3-5-haiku-latest', 
+      model: 'claude-3-5-sonnet-20240620', 
       max_tokens:4000,
       messages: [{ 
         role: 'user', 
         content: blogPrompt 
       }]
   })  
-    return response
+  for (const block of response.content) {
+    if (block.type === 'text') {
+       
+        return block.text; // Or just return the text
+    }
+  }
+   
   
 }

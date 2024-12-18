@@ -2,18 +2,28 @@ import express from "express";
 import dotenv from "dotenv";
 import blogCreatinon from "./Blogcreation.js";
 import fetchRepoContent from "./githubFetcher.js";
-
+import cors from 'cors'
+import bodyParser from "body-parser";
 dotenv.config();
 
 const app = express();
-
+app.use(cors());
+app.use(bodyParser.json())
 const PORT = process.env.PORT;
 
-app.get("/", async (req, res) => {
-  const url = "https://github.com/ViharGandhi/Link-Shorten"
-  const datarr = await fetchRepoContent(url); // Await the fetching process
-  const data = await blogCreatinon(datarr);
-  res.json(data)
+app.post("/blog-creation", async (req, res) => {
+  const {url} = req.body
+  
+  try{
+    const datarr = await fetchRepoContent(url); 
+    const data = await blogCreatinon(datarr);
+ 
+    res.status(200).json(data)
+  
+  }catch(error){
+    console.log(error)
+    res.status(500).json({message:"Something went wrong"})
+  }
 
 });
 
