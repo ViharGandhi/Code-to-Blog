@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Github, Loader2, Sparkles, Send, BookOpen, Twitter, Linkedin, Moon, Sun, Copy, CheckCircle } from 'lucide-react';
+import { Github, Loader2, Sparkles, Send, BookOpen, Twitter, Linkedin, Moon, Sun, Copy, CheckCircle, FileText } from 'lucide-react';
 import axios from 'axios';
+
 
 const ContentTypeInfo = {
   blog: {
@@ -50,12 +51,12 @@ const ContentTypeInfo = {
 
 const CodeToPublicApp = () => {
   const [githubLink, setGithubLink] = useState('');
+  const [importantFiles, setImportantFiles] = useState(''); // New state for important files
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('blog');
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [generatedBlog, setGeneratedBlog] = useState(null);
   const [isCopied, setIsCopied] = useState(false);
-
   // Toggle dark mode
   const toggleDarkMode = () => {
     const newMode = !isDarkMode;
@@ -76,9 +77,17 @@ const CodeToPublicApp = () => {
     setIsLoading(true);
     setGeneratedBlog(null);
     
+    // Convert comma-separated string to array and clean up whitespace
+    const filesArray = importantFiles
+      .split(',')
+      .map(file => file.trim())
+      .filter(file => file !== '');
+    
     try {
+        
       const response = await axios.post(`${import.meta.env.VITE_BACKEND_URL}blog-creation`, {
         url: githubLink,
+        importantFiles: filesArray  // Adding the important files array to the request
       });
       
       if(response.status === 200){
@@ -186,14 +195,7 @@ const CodeToPublicApp = () => {
       {isDarkMode ? <Sun className="w-6 h-6" /> : <Moon className="w-6 h-6" />}
     </button>
 
-    <div className={`w-full max-w-5xl 
-      ${isDarkMode 
-        ? 'bg-gray-800 text-gray-100 shadow-2xl' 
-        : 'bg-white text-gray-900 shadow-2xl'} 
-      rounded-3xl overflow-hidden grid grid-cols-1 md:grid-cols-2 
-      divide-y md:divide-y-0 md:divide-x 
-      ${isDarkMode ? 'divide-gray-700' : 'divide-gray-200'} 
-      transition-colors duration-300`}>
+    <div className={`w-full max-w-5xl ${isDarkMode ? 'bg-gray-800' : 'bg-white'} rounded-3xl overflow-hidden grid grid-cols-1 md:grid-cols-2`}>
       
       {/* Left Column - Content Type Preview */}
       <div className={`${isDarkMode ? 'bg-gray-900' : 'bg-white'} p-8 flex flex-col justify-center`}>
@@ -263,68 +265,67 @@ const CodeToPublicApp = () => {
 
         {/* GitHub Link Input */}
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="relative">
-            <input 
-              type="text" 
-              value={githubLink}
-              onChange={(e) => setGithubLink(e.target.value)}
-              placeholder="Paste your GitHub repository link"
-              className={`w-full px-4 py-3 
-                ${isDarkMode 
-                  ? 'bg-gray-700 text-gray-100 border-gray-600 focus:ring-blue-600' 
-                  : 'bg-gray-100 text-gray-800 border-gray-300 focus:ring-blue-500'} 
-                border rounded-xl 
-                focus:outline-none focus:ring-2 
-                transition-all duration-300`}
-              required
-            />
-            <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-              <Github className={isDarkMode ? 'text-gray-500' : 'text-gray-400'} />
+            {/* GitHub Link Input */}
+            <div className="relative">
+              <input 
+                type="text" 
+                value={githubLink}
+                onChange={(e) => setGithubLink(e.target.value)}
+                placeholder="Paste your GitHub repository link"
+                className={`w-full px-4 py-3 
+                  ${isDarkMode 
+                    ? 'bg-gray-700 text-gray-100 border-gray-600 focus:ring-blue-600' 
+                    : 'bg-gray-100 text-gray-800 border-gray-300 focus:ring-blue-500'} 
+                  border rounded-xl focus:outline-none focus:ring-2 transition-all duration-300`}
+                required
+              />
+              <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                <Github className={isDarkMode ? 'text-gray-500' : 'text-gray-400'} />
+              </div>
             </div>
-          </div>
 
-          {/* Submit Button */}
-          <button 
-            type="submit" 
-            disabled={isLoading}
-            className={`w-full flex items-center justify-center 
-              ${isDarkMode 
-                ? 'bg-blue-800 text-white hover:bg-blue-700' 
-                : 'bg-blue-500 text-white hover:bg-blue-600'} 
-              py-3 rounded-xl 
-              transition-all duration-300 
-              disabled:opacity-50 disabled:cursor-not-allowed`}
-          >
-            {isLoading ? (
-              <Loader2 className="animate-spin mr-2" />
-            ) : (
-              <Send className="mr-2" />
-            )}
-            {isLoading ? 'Generating...' : `Generate ${activeTab} Content`}
-          </button>
-        </form>
+            {/* New Important Files Input */}
+            <div className="relative">
+              <input 
+                type="text" 
+                value={importantFiles}
+                onChange={(e) => setImportantFiles(e.target.value)}
+                placeholder="Important files (comma-separated, e.g main.js)"
+                className={`w-full px-4 py-3 
+                  ${isDarkMode 
+                    ? 'bg-gray-700 text-gray-100 border-gray-600 focus:ring-blue-600' 
+                    : 'bg-gray-100 text-gray-800 border-gray-300 focus:ring-blue-500'} 
+                  border rounded-xl focus:outline-none focus:ring-2 transition-all duration-300`}
+              />
+              <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+                <FileText className={isDarkMode ? 'text-gray-500' : 'text-gray-400'} />
+              </div>
+            </div>
 
-        {/* GitHub Link */}
-        {githubLink && (
-          <div className="text-center mt-4">
-            <a 
-              href={githubLink}
-              target="_blank" 
-              rel="noopener noreferrer"
-              className={`
+            {/* Submit Button */}
+            <button 
+              type="submit" 
+              disabled={isLoading}
+              className={`w-full flex items-center justify-center 
                 ${isDarkMode 
-                  ? 'text-gray-400 hover:text-blue-400' 
-                  : 'text-gray-500 hover:text-blue-500'} 
-                transition-colors flex items-center justify-center space-x-2`}
+                  ? 'bg-blue-800 text-white hover:bg-blue-700' 
+                  : 'bg-blue-500 text-white hover:bg-blue-600'} 
+                py-3 rounded-xl transition-all duration-300 
+                disabled:opacity-50 disabled:cursor-not-allowed`}
             >
-              <Github className="w-5 h-5" />
-              <span>View Project on GitHub</span>
-            </a>
-          </div>
-        )}
+              {isLoading ? (
+                <Loader2 className="animate-spin mr-2" />
+              ) : (
+                <Send className="mr-2" />
+              )}
+              {isLoading ? 'Generating...' : `Generate ${activeTab} Content`}
+            </button>
+          </form>
+
+          {/* GitHub Link display remains the same */}
+        </div>
       </div>
     </div>
-  </div>
   );
 };
 

@@ -12,10 +12,11 @@ app.use(bodyParser.json())
 const PORT = process.env.PORT;
 
 app.post("/blog-creation", async (req, res) => {
-  const {url} = req.body
+  const {url,importantFiles} = req.body
+
   
   try{
-    const datarr = await fetchRepoContent(url); 
+    const datarr = await fetchRepoContent(url,importantFiles); 
     const data = await blogCreatinon(datarr);
  
     res.status(200).json(data)

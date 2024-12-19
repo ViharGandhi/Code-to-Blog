@@ -16,15 +16,15 @@ const IGNORED_DIRECTORIES = [
 ];
 
 const octokit = new Octokit({
-    auth: process.env.GITHUB_TOKEN 
+    auth: process.env.GITHUB_TOKEN
 });
 
-let datarr = []; 
+let datarr = [];
 
 function extractRepoDetails(url) {
     const regex = /https:\/\/github\.com\/([^/]+)\/([^/]+)/;
     const match = url.match(regex);
-
+    
     if (match && match.length === 3) {
         const username = match[1];
         const repoName = match[2];
@@ -34,7 +34,7 @@ function extractRepoDetails(url) {
     }
 }
 
-export default async function fetchRepoContent(url, path = "") {
+export default async function fetchRepoContent(url, filesArray, path = "") {
     const { username, repoName } = extractRepoDetails(url);
     const owner = username;
     const repo = repoName;
@@ -56,16 +56,20 @@ export default async function fetchRepoContent(url, path = "") {
             }
 
             if (item.type === "file") {
-                console.log(`Fetching content of file: ${itemPath}`);
-                const response = await axios.get(`https://raw.githubusercontent.com/${owner}/${repo}/main/${itemPath}`);
-                const object = {
-                    File: itemPath,
-                    content: response.data,
-                };
-                datarr.push(object); // Add the object to the array
+                // Only fetch content if the file is in the filesArray
+                if (filesArray.includes(itemPath)) {
+                    console.log(`Fetching content of file: ${itemPath}`);
+                    const response = await axios.get(`https://raw.githubusercontent.com/${owner}/${repo}/main/${itemPath}`);
+                    const object = {
+                        File: itemPath,
+                        content: response.data,
+                    };
+                    datarr.push(object);
+                }
             } else if (item.type === "dir") {
                 console.log(`Entering directory: ${itemPath}`);
-                await fetchRepoContent(url, itemPath); // Await the recursive call
+                // Pass the filesArray to the recursive call
+                await fetchRepoContent(url, filesArray, itemPath);
             }
         });
 
@@ -74,9 +78,8 @@ export default async function fetchRepoContent(url, path = "") {
 
         // Return the datarr after all iterations are complete
         return datarr;
-
     } catch (error) {
         console.error("Error fetching content:", error);
-        throw error; // Throw the error to propagate it to the caller
+        throw error;
     }
 }
